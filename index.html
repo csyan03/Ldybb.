@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>雷东燕的抖音</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            height: 100vh;
+            transition: transform 0.5s ease;
+        }
+
+        .folder {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .media-container {
+            display: flex;
+            width: 300vw;
+            height: 100%;
+            position: absolute;
+            transition: transform 0.5s ease;
+        }
+
+        .media-item {
+            width: 100vw;
+            height: 100vh;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        video, img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .music-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 第一个文件夹 -->
+        <div class="folder" data-music="250113.mp3">
+            <div class="media-container">
+                <div class="media-item"><img src="250113-1.webp"></div>
+                <div class="media-item"><img src="250113-2.webp"></div>
+                <div class="media-item"><img src="250113-3.webp"></div>
+                <div class="media-item"><img src="250113-4.webp"></div>
+                <div class="media-item"><img src="250113-5.webp"></div>
+                <div class="media-item"><img src="250113-6.webp"></div>
+                <div class="media-item"><img src="250113-7.webp"></div>
+            </div>
+            <div class="music-info">当前音乐: 跳楼机(1.1)_我们的感情好像跳楼机-FBI利比</div>
+        </div>
+
+        <!-- 第二个文件夹 -->
+        <div class="folder" data-music="241116.mp3">
+            <div class="media-container">
+                <div class="media-item"><video src="241116-1.mp4" autoplay muted></video></div>
+                <div class="media-item"><video src="241116-2.mp4" autoplay muted></video></div>
+            </div>
+            <div class="music-info">当前音乐: 幸福总是二倍速 佳梁 专属原声</div>
+        </div>
+    </div>
+
+    <script>
+        let startY, startX;
+        let currentFolder = 0;
+        let currentMedia = [0, 0]; // 每个文件夹的当前媒体索引
+        const folders = document.querySelectorAll('.folder');
+        const container = document.querySelector('.container');
+        let currentAudio = null;
+
+        // 播放背景音乐
+        function playMusic(musicFile) {
+            if(currentAudio) {
+                currentAudio.pause();
+            }
+            currentAudio = new Audio(musicFile);
+            currentAudio.loop = true;
+            currentAudio.play();
+        }
+
+        // 切换文件夹
+        function switchFolder(direction) {
+            if(direction === 'up' && currentFolder < folders.length - 1) {
+                currentFolder++;
+            } else if(direction === 'down' && currentFolder > 0) {
+                currentFolder--;
+            } else {
+                return;
+            }
+
+            container.style.transform = `translateY(-${currentFolder * 100}vh)`;
+            playMusic(folders[currentFolder].dataset.music);
+            currentMedia[currentFolder] = 0; // 切换到新文件夹时重置媒体索引
+        }
+
+        // 切换媒体内容
+        function switchMedia(direction) {
+            const mediaContainer = folders[currentFolder].querySelector('.media-container');
+            const mediaCount = mediaContainer.children.length;
+            
+            if(direction === 'left' && currentMedia[currentFolder] < mediaCount - 1) {
+                currentMedia[currentFolder]++;
+            } else if(direction === 'right' && currentMedia[currentFolder] > 0) {
+                currentMedia[currentFolder]--;
+            } else {
+                return;
+            }
+
+            mediaContainer.style.transform = `translateX(-${currentMedia[currentFolder] * 100}vw)`;
+        }
+
+        // 触摸事件处理
+        document.addEventListener('touchstart', e => {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', e => {
+            const deltaY = e.changedTouches[0].clientY - startY;
+            const deltaX = e.changedTouches[0].clientX - startX;
+
+            if(Math.abs(deltaY) > Math.abs(deltaX)) { // 垂直滑动
+                if(deltaY > 50) { // 下滑
+                    switchFolder('down');
+                } else if(deltaY < -50) { // 上滑
+                    switchFolder('up');
+                }
+            } else { // 水平滑动
+                if(deltaX > 50) { // 右滑
+                    switchMedia('right');
+                } else if(deltaX < -50) { // 左滑
+                    switchMedia('left');
+                }
+            }
+        });
+
+        // 初始化播放第一个音乐
+        playMusic(folders[0].dataset.music);
+    </script>
+</body>
+</html>
